@@ -11,15 +11,10 @@ install: |
   TOOLCHAINS=( "stable" "beta" "nightly" )
 
 before_script: |
-  for TOOLCHAIN in "${TOOLCHAINS[@]}"
-  do
-    docker pull $REPOSITORY/$TARGET:$TOOLCHAIN || true
-  done
   RUSTC_STABLE=$(docker run $REPOSITORY/$TARGET:stable rustc --version || true)
   RUSTC_BETA=$(docker run $REPOSITORY/$TARGET:beta rustc --version || true)
   RUSTC_NIGHTLY=$(docker run $REPOSITORY/$TARGET:nightly rustc --version || true)
-  for TOOLCHAIN in "${TOOLCHAINS[@]}"
-  do
+  for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
     docker rmi -f $REPOSITORY/$TARGET:$TOOLCHAIN || true
   done
   echo $RUSTC_STABLE
@@ -27,13 +22,14 @@ before_script: |
   echo $RUSTC_NIGHTLY
 
 script: |
-  docker build \
-    --rm \
-    --file $TARGET/Dockerfile \
-    --tag $TARGET \
-    .
-  for TOOLCHAIN in "${TOOLCHAINS[@]}"
-  do
+  for NAME in `find $TARGET -name Dockerfile -exec dirname {} \; | sort -u`; do
+    docker build \
+      --rm \
+      --file $NAME/Dockerfile \
+      --tag ${NAME////-} \
+      .
+  done
+  for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
     docker build \
       --rm \
       --tag $REPOSITORY/$TARGET:$TOOLCHAIN \
