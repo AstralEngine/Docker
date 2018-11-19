@@ -52,7 +52,7 @@ before_deploy: |
     docker tag astralengine/$TARGET:stable astralengine/$TARGET:$VERSION
     docker tag astralengine/$TARGET:stable astralengine/$TARGET:latest
   fi
-  if [[ $RUSTC_BETA_NEW == $RUSTC_STABLE && $TRAVIS_EVENT_TYPE == cron ]]; then
+  if [[ $RUSTC_BETA_NEW == $RUSTC_BETA && $TRAVIS_EVENT_TYPE == cron ]]; then
     docker rmi -f astralengine/$TARGET:beta
   fi
   if [[ $RUSTC_NIGHTLY_NEW == $RUSTC_NIGHTLY && $TRAVIS_EVENT_TYPE == cron ]]; then
