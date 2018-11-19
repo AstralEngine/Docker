@@ -23,6 +23,8 @@ script: |
   for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
     docker build \
       --rm \
+      --pull \
+      --cache-from astralengine/$TARGET:$TOOLCHAIN \
       --file $TARGET/Dockerfile \
       --tag astralengine/$TARGET:$TOOLCHAIN \
       --build-arg TOOLCHAIN=$TOOLCHAIN \
