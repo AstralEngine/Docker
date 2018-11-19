@@ -11,36 +11,29 @@ install: |
   TOOLCHAINS=( "stable" "beta" "nightly" )
 
 before_script: |
-  RUSTC_STABLE=$(docker run $REPOSITORY/$TARGET:stable rustc --version || true)
-  RUSTC_BETA=$(docker run $REPOSITORY/$TARGET:beta rustc --version || true)
-  RUSTC_NIGHTLY=$(docker run $REPOSITORY/$TARGET:nightly rustc --version || true)
-  for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
-    docker rmi -f $REPOSITORY/$TARGET:$TOOLCHAIN || true
-  done
+  RUSTC_STABLE=$(docker run astralengine/$TARGET:stable rustc --version || true)
+  RUSTC_BETA=$(docker run astralengine/$TARGET:beta rustc --version || true)
+  RUSTC_NIGHTLY=$(docker run astralengine/$TARGET:nightly rustc --version || true)
   echo $RUSTC_STABLE
   echo $RUSTC_BETA
   echo $RUSTC_NIGHTLY
 
 script: |
-  for NAME in `find $TARGET -name Dockerfile -exec dirname {} \; | sort -u`; do
-    docker build \
-      --rm \
-      --file $NAME/Dockerfile \
-      --tag ${NAME////-} \
-      .
-  done
   for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
     docker build \
       --rm \
-      --tag $REPOSITORY/$TARGET:$TOOLCHAIN \
-      --build-arg TARGET=$TARGET \
+      --file $TARGET/Dockerfile \
+      --tag astralengine/$TARGET:$TOOLCHAIN \
       --build-arg TOOLCHAIN=$TOOLCHAIN \
+      --build-arg DATE="`date`" \
       .
-    ~/official-images/test/run.sh $REPOSITORY/$TARGET:$TOOLCHAIN
+    ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
   done
-  RUSTC_STABLE_NEW=$(docker run $REPOSITORY/$TARGET:stable rustc --version || true)
-  RUSTC_BETA_NEW=$(docker run $REPOSITORY/$TARGET:beta rustc --version || true)
-  RUSTC_NIGHTLY_NEW=$(docker run $REPOSITORY/$TARGET:nightly rustc --version || true)
+
+after_success: |
+  RUSTC_STABLE_NEW=$(docker run astralengine/$TARGET:stable rustc --version || true)
+  RUSTC_BETA_NEW=$(docker run astralengine/$TARGET:beta rustc --version || true)
+  RUSTC_NIGHTLY_NEW=$(docker run astralengine/$TARGET:nightly rustc --version || true)
   echo $RUSTC_STABLE_NEW
   echo $RUSTC_BETA_NEW
   echo $RUSTC_NIGHTLY_NEW
@@ -48,21 +41,21 @@ script: |
 before_deploy: |
   VERSION=$(echo $RUSTC_STABLE_NEW | awk '{ print $2 }')
   if [[ $RUSTC_STABLE_NEW == $RUSTC_STABLE && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f $REPOSITORY/$TARGET:stable
+    docker rmi -f astralengine/$TARGET:stable
   else
-    docker tag $REPOSITORY/$TARGET:stable $REPOSITORY/$TARGET:$VERSION
-    docker tag $REPOSITORY/$TARGET:stable $REPOSITORY/$TARGET:latest
+    docker tag astralengine/$TARGET:stable astralengine/$TARGET:$VERSION
+    docker tag astralengine/$TARGET:stable astralengine/$TARGET:latest
   fi
   if [[ $RUSTC_BETA_NEW == $RUSTC_STABLE && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f $REPOSITORY/$TARGET:beta
+    docker rmi -f astralengine/$TARGET:beta
   fi
   if [[ $RUSTC_NIGHTLY_NEW == $RUSTC_NIGHTLY && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f $REPOSITORY/$TARGET:nightly
+    docker rmi -f astralengine/$TARGET:nightly
   fi
-  docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+  echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --paasword-stdin
 deploy:
   provider: script
-  script: docker push $REPOSITORY/$TARGET
+  script: docker push astralengine/$TARGET
   on:
     branch: master
 
