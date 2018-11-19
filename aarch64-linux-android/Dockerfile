@@ -38,7 +38,8 @@ RUN set -eux; \
     "emulator" \
     "platform-tools" \
     "platforms;android-24" \
-    "system-images;android-24;google_apis;arm64-v8a"; \
+    "system-images;android-24;google_apis;arm64-v8a" \
+    > /dev/null; \
     rm -rf sdk-tools-linux-433796.zip;
 
 # Create emulator
