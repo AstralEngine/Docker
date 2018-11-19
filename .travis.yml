@@ -6,6 +6,7 @@ env:
   - TARGET: x86_64-unknown-linux-gnu
   - TARGET: i686-unknown-linux-gnu
   - TARGET: aarch64-linux-android
+  - TARGET: armv7-linux-androideabi
 
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
