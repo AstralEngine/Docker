@@ -1,5 +1,4 @@
-// Copied from https://github.com/rust-lang/libc/blob/4e5ef22258dc1733cdcb84d9ecf71310aeebd23f/ci/runtest-android.rs
-// At time of writing, no license note on the linked file.
+// Modified version of https://github.com/rust-lang/libc/blob/4e5ef22258dc1733cdcb84d9ecf71310aeebd23f/ci/runtest-android.rs
 
 use std::env;
 use std::path::{Path, PathBuf};
