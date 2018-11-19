@@ -53,7 +53,7 @@ before_deploy: |
   if [[ $RUSTC_NIGHTLY_NEW == $RUSTC_NIGHTLY && $TRAVIS_EVENT_TYPE == cron ]]; then
     docker rmi -f astralengine/$TARGET:nightly
   fi
-  echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --paasword-stdin
+  echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin
 deploy:
   provider: script
   script: docker push astralengine/$TARGET
