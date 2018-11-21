@@ -6,7 +6,6 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    default-jdk \
     gcc \
     libc-dev \
     libstdc++6:i386 \
@@ -17,10 +16,10 @@ RUN set -eux; \
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
-    CARGO_TARGET_I686_LINUX_ANDROID_LINKER=i686-linux-android-gcc \
-    CARGO_TARGET_I686_LINUX_ANDROID_RUNNER=runtest \
-    HOME=/home \
-    PATH=/usr/local/cargo/bin:/usr/local/android/ndk/bin:/usr/local/android/sdk/tools:/usr/local/android/sdk/tools/bin:/usr/local/android/sdk/platform-tools:$PATH
+    CC_i686_linux_android=i686-linux-android-gcc \
+    CXX_i686_linux_android=i686-linux-android-g++ \
+    CARGO_TARGET_i686_LINUX_ANDROID_LINKER=i686-linux-android-gcc \
+    PATH=/usr/local/cargo/bin:/usr/local/android/ndk/bin:$PATH
 
 # Install ndk
 RUN set -eux; \
@@ -29,49 +28,36 @@ RUN set -eux; \
     android-ndk-r18b/build/tools/make_standalone_toolchain.py \
     --install-dir /usr/local/android/ndk \
     --arch x86 \
-    --api 18; \
+    --api 21; \
     rm -rf android-ndk-r18b-linux-x86_64.zip android-ndk-r18b;
-
-# Install sdk
-RUN set -eux; \
-    curl -O https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip; \
-    unzip -q sdk-tools-linux-4333796.zip -d /usr/local/android/sdk; \
-    echo "yes" | sdkmanager --no_https \
-    "emulator" \
-    "platform-tools" \
-    "platforms;android-18" \
-    "system-images;android-18;default;x86" \
-    > /dev/null; \
-    rm -rf sdk-tools-linux-433796.zip;
-
-# Create emulator
-RUN set -eux; \
-    echo "no" | avdmanager create avd \
-    --name i686 \
-    --package "system-images;android-18;default;x86";
-
-ADD runtest-android.rs /usr/src/runtest.rs
-
-RUN set -eux; \
-    mkdir -p /home; \
-    mv /root/.android /home/; \
-    chmod -R 777 /home;
-
-# Invalidate cache after this line
-ARG DATE=
 
 ARG TOOLCHAIN
 
 RUN set -eux; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN --no-modify-path; \
     rustup target add i686-linux-android; \
-    chmod -R +w $RUSTUP_HOME $CARGO_HOME; \
-    rustc /usr/src/runtest.rs -o /usr/bin/runtest
+    chmod -R +w $RUSTUP_HOME $CARGO_HOME;
 
-ENTRYPOINT [ \
-    "bash", \
-    "-c", \
-    "/usr/local/android/sdk/emulator/emulator @i686 -no-window & \
-    exec \"$@\"", \
-    "--" \
-    ]
+
+# Install sysimage
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends e2tools; \
+    curl -O https://dl.google.com/android/repository/sys-img/android/x86-18_r03.zip; \
+    unzip -q x86-18_r03.zip; \
+    mkdir -p /system/bin; \
+    mkdir -p /system/lib; \
+    e2cp -p x86/system.img:/bin/linker /system/bin/; \
+    e2cp -p x86/system.img:/lib/libdl.so /system/lib/; \
+    e2cp -p x86/system.img:/lib/libc.so /system/lib/; \
+    e2cp -p x86/system.img:/lib/libm.so /system/lib/; \
+    e2cp -p x86/system.img:/lib/liblog.so /system/lib/; \
+    apt-get purge --auto-remove -y e2tools; \
+    rm -rf x86 x86-18_r03.zip;
+
+COPY i686-linux-android/config /.cargo/config
+
+ENV CC_x86_linux_android=i686-linux-android-gcc \
+    CXX_x86_linux_android=i686-linux-android-g++ \
+    CARGO_TARGET_i686_LINUX_ANDROID_AR=i686-linux-android-ar \
+    CARGO_TARGET_x86_LINUX_ANDROID_LINKER=i686-linux-android-gcc \

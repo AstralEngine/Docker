@@ -1,0 +1,3 @@
+[target.i686-linux-android]
+linker = "i686-linux-android-gcc"
+ar = "i686-linux-android-ar"
