@@ -61,7 +61,7 @@ before_deploy: |
   echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin
 deploy:
   provider: script
-  script: docker push astralengine/$TARGET
+  script: docker push astralengine/$TARGET || true
   on:
     branch: master
 
