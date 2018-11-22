@@ -60,4 +60,4 @@ COPY i686-linux-android/config /.cargo/config
 ENV CC_x86_linux_android=i686-linux-android-gcc \
     CXX_x86_linux_android=i686-linux-android-g++ \
     CARGO_TARGET_i686_LINUX_ANDROID_AR=i686-linux-android-ar \
-    CARGO_TARGET_x86_LINUX_ANDROID_LINKER=i686-linux-android-gcc \
+    CARGO_TARGET_x86_LINUX_ANDROID_LINKER=i686-linux-android-gcc
