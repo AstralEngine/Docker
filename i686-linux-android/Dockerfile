@@ -31,6 +31,9 @@ RUN set -eux; \
     --api 21; \
     rm -rf android-ndk-r18b-linux-x86_64.zip android-ndk-r18b;
 
+# Invalidate cache after this line
+ARG DATE=
+
 ARG TOOLCHAIN
 
 RUN set -eux; \
