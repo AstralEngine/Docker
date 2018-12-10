@@ -21,4 +21,6 @@ ARG TOOLCHAIN
 
 RUN set -eux; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN --default-host x86_64-unknown-linux-gnu --no-modify-path; \
-    chmod -R +w $RUSTUP_HOME $CARGO_HOME;
+    chmod -R +w $RUSTUP_HOME $CARGO_HOME; \
+    rustup component add rustfmt; \
+    rustup component add clippy;
