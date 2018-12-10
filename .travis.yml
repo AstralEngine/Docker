@@ -35,7 +35,6 @@ script: |
       --build-arg TOOLCHAIN=$TOOLCHAIN \
       --build-arg DATE="`date`" \
       . || exit
-    echo $?
     ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
     travis_time_finish
     travis_fold end "$TOOLCHAIN"
