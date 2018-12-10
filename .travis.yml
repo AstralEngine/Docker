@@ -24,7 +24,7 @@ before_script: |
 
 script: |
   for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
-    travis_retry docker build \
+    docker build \
       --rm \
       --pull \
       --cache-from astralengine/$TARGET:$TOOLCHAIN \
