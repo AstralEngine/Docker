@@ -24,7 +24,7 @@ before_script: |
 
 script: |
   for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
-    travis_fold start "docker build $TOOLCHAIN"
+    travis_fold start "$TOOLCHAIN"
     travis_time_start
     travis_retry docker build \
       --rm \
@@ -34,12 +34,12 @@ script: |
       --tag astralengine/$TARGET:$TOOLCHAIN \
       --build-arg TOOLCHAIN=$TOOLCHAIN \
       --build-arg DATE="`date`" \
-      .
+      . || exit
     echo $?
     ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
     travis_time_finish
-    travis_fold end "docker build $TOOLCHAIN"
-  done || exit 1
+    travis_fold end "$TOOLCHAIN"
+  done
 
 after_success: |
   RUSTC_STABLE_NEW=$(docker run astralengine/$TARGET:stable rustc --version || true)
