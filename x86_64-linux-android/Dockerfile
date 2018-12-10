@@ -43,6 +43,9 @@ RUN set -eux; \
     e2cp -p x86_64/system.img:/lib64/libm.so /system/lib64/; \
     apt-get purge --auto-remove -y e2tools; \
     rm -rf x86_64 x86_64-21_r05.zip;
+    
+# Invalidate cache after this line
+ARG DATE=
 
 ARG TOOLCHAIN
 
