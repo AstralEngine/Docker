@@ -33,6 +33,7 @@ script: |
       --build-arg TOOLCHAIN=$TOOLCHAIN \
       --build-arg DATE="`date`" \
       .
+    echo $?
     ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
   done
 
