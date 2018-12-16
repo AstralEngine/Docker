@@ -2,6 +2,10 @@ notifications:
   email:
     false
 
+stages:
+  - test
+  - trigger
+
 env:
   - TARGET: x86_64-unknown-linux-gnu
   - TARGET: i686-unknown-linux-gnu
@@ -9,6 +13,21 @@ env:
   - TARGET: arm-linux-androideabi
   - TARGET: x86_64-linux-android
   # - TARGET: i686-linux-android
+
+jobs:
+  include:
+    - stage: trigger
+      name: Astral Engine
+      language: shell
+      script : |
+        body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version"}}"
+        curl -s -X POST \
+          -H "Content-Type:application/json" \
+          -H "Accept:application/json" \
+          -H "Travis-API-Version:3" \
+          -H "Authorization:token ${TRAVIS_TOKEN}" \
+          -d "$body" \
+          https://api.travis-ci.org/repo/astral/astral-engine/requests
 
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
