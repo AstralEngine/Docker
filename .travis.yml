@@ -20,14 +20,14 @@ jobs:
       name: Astral Engine
       language: shell
       script : |
-        body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version"}}"
+        body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version\"}}"
         curl -s -X POST \
           -H "Content-Type:application/json" \
           -H "Accept:application/json" \
           -H "Travis-API-Version:3" \
           -H "Authorization:token ${TRAVIS_TOKEN}" \
           -d "$body" \
-          https://api.travis-ci.org/repo/astral/astral-engine/requests
+          https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
 
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
