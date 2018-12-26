@@ -15,21 +15,6 @@ env:
   - TARGET: x86_64-linux-android
   # - TARGET: i686-linux-android
 
-jobs:
-  include:
-    - stage: trigger
-      name: Astral Engine
-      language: shell
-      script : |
-        body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version\"}}"
-        curl -s -X POST \
-          -H "Content-Type:application/json" \
-          -H "Accept:application/json" \
-          -H "Travis-API-Version:3" \
-          -H "Authorization:token ${TRAVIS_TOKEN}" \
-          -d "$body" \
-          https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
-
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
   TOOLCHAINS=( "stable" "beta" "nightly" )
@@ -90,3 +75,45 @@ deploy:
     branch: master
 
 after_script: docker images
+
+jobs:
+  include:
+    - stage: versions
+      env:
+        - TARGET: x86_64-unknown-linux-gnu
+      script: |
+
+    - stage: trigger
+      name: Astral Engine
+      script : |
+        RUSTC_STABLE=$(docker run astralengine/$TARGET:stable rustc --version)
+        RUSTC_BETA=$(docker run astralengine/$TARGET:beta rustc --version)
+        RUSTC_NIGHTLY=$(docker run astralengine/$TARGET:nightly rustc --version)
+
+        curl -s -X GET \
+          -H "Content-Type:application/json" \
+          -H "Accept:application/json" \
+          -H "Authorization:token ${GH_TOKEN}" \
+          https://api.github.com/gists/$GIST_ID > latest.json
+
+        LATEST_STABLE=$(cat latest.json | jq -r '.["files"]["stable.txt"]["content"]')
+        LATEST_BETA=$(cat latest.json | jq -r '.["files"]["beta.txt"]["content"]')
+        LATEST_NIGHTLY=$(cat latest.json | jq -r '.["files"]["nightly.txt"]["content"]')
+
+        if [ "${RUSTC_STABLE}" != "${LATEST_STABLE}" ] || [ "${RUSTC_BETA}" != "${LATEST_BETA}" ] || [ "${RUSTC_NIGHTLY}" != "${LATEST_NIGHTLY}" ]; then
+          curl -s -X PATCH \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Authorization:token ${GH_TOKEN}" \
+            -d "{\"description\":\"Update versions\",\"files\":{\"stable.txt\":{\"content\":\"$RUSTC_STABLE\"},\"beta.txt\":{\"content\":\"$RUSTC_BETA\"},\"nightly.txt\":{\"content\":\"$RUSTC_NIGHTLY\"}}}" \
+            https://api.github.com/gists/$GIST_ID
+
+          body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version\"}}"
+          curl -s -X POST \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Travis-API-Version:3" \
+            -H "Authorization:token ${TRAVIS_TOKEN}" \
+            -d "$body" \
+            https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
+        fi
