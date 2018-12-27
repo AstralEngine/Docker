@@ -95,20 +95,53 @@ jobs:
         LATEST_BETA=$(cat latest.json | jq -r '.["files"]["beta.txt"]["content"]')
         LATEST_NIGHTLY=$(cat latest.json | jq -r '.["files"]["nightly.txt"]["content"]')
 
-        if [ "${RUSTC_STABLE}" != "${LATEST_STABLE}" ] || [ "${RUSTC_BETA}" != "${LATEST_BETA}" ] || [ "${RUSTC_NIGHTLY}" != "${LATEST_NIGHTLY}" ]; then
+        if [ "${RUSTC_STABLE}" != "${LATEST_STABLE}" ]; then
           curl -s -X PATCH \
             -H "Content-Type:application/json" \
             -H "Accept:application/json" \
             -H "Authorization:token ${GH_TOKEN}" \
-            -d "{\"description\":\"Update versions\",\"files\":{\"stable.txt\":{\"content\":\"$RUSTC_STABLE\"},\"beta.txt\":{\"content\":\"$RUSTC_BETA\"},\"nightly.txt\":{\"content\":\"$RUSTC_NIGHTLY\"}}}" \
+            -d "{\"description\":\"Update stable\",\"files\":{\"stable.txt\":{\"content\":\"$RUSTC_STABLE\"}}}" \
             https://api.github.com/gists/$GIST_ID
 
-          body="{\"request\":{\"branch\":\"master\",\"message\":\"Test latest rust version\"}}"
           curl -s -X POST \
             -H "Content-Type:application/json" \
             -H "Accept:application/json" \
             -H "Travis-API-Version:3" \
             -H "Authorization:token ${TRAVIS_TOKEN}" \
-            -d "$body" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_STABLE}\"}}" \
+            https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
+        fi
+
+        if [ "${RUSTC_BETA}" != "${LATEST_BETA}" ]; then
+          curl -s -X PATCH \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Authorization:token ${GH_TOKEN}" \
+            -d "{\"description\":\"Update versions\",\"files\":{\"beta.txt\":{\"content\":\"$RUSTC_BETA\"}}}}" \
+            https://api.github.com/gists/$GIST_ID
+
+          curl -s -X POST \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Travis-API-Version:3" \
+            -H "Authorization:token ${TRAVIS_TOKEN}" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_BETA}\"}}" \
+            https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
+        fi
+
+        if [ "${RUSTC_NIGHTLY}" != "${LATEST_NIGHTLY}" ]; then
+          curl -s -X PATCH \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Authorization:token ${GH_TOKEN}" \
+            -d "{\"description\":\"Update versions\",\"files\":{\"nightly.txt\":{\"content\":\"$RUSTC_NIGHTLY\"}}}" \
+            https://api.github.com/gists/$GIST_ID
+
+          curl -s -X POST \
+            -H "Content-Type:application/json" \
+            -H "Accept:application/json" \
+            -H "Travis-API-Version:3" \
+            -H "Authorization:token ${TRAVIS_TOKEN}" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_NIGHTLY}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
         fi
