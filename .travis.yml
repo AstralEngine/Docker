@@ -80,6 +80,7 @@ jobs:
   include:
     - stage: trigger
       name: Astral Engine
+      deploy: false
       script : |
         RUSTC_STABLE=$(docker run astralengine/$TARGET:stable rustc --version)
         RUSTC_BETA=$(docker run astralengine/$TARGET:beta rustc --version)
@@ -108,7 +109,7 @@ jobs:
             -H "Accept:application/json" \
             -H "Travis-API-Version:3" \
             -H "Authorization:token ${TRAVIS_TOKEN}" \
-            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_STABLE}\"}}" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${RUSTC_STABLE}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
         fi
 
@@ -117,7 +118,7 @@ jobs:
             -H "Content-Type:application/json" \
             -H "Accept:application/json" \
             -H "Authorization:token ${GH_TOKEN}" \
-            -d "{\"description\":\"Update versions\",\"files\":{\"beta.txt\":{\"content\":\"$RUSTC_BETA\"}}}}" \
+            -d "{\"description\":\"Update versions\",\"files\":{\"beta.txt\":{\"content\":\"$RUSTC_BETA\"}}}" \
             https://api.github.com/gists/$GIST_ID
 
           curl -s -X POST \
@@ -125,7 +126,7 @@ jobs:
             -H "Accept:application/json" \
             -H "Travis-API-Version:3" \
             -H "Authorization:token ${TRAVIS_TOKEN}" \
-            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_BETA}\"}}" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${RUSTC_BETA}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
         fi
 
@@ -142,6 +143,6 @@ jobs:
             -H "Accept:application/json" \
             -H "Travis-API-Version:3" \
             -H "Authorization:token ${TRAVIS_TOKEN}" \
-            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${LATEST_NIGHTLY}\"}}" \
+            -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${RUSTC_NIGHTLY}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
         fi
