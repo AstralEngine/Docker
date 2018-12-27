@@ -111,6 +111,7 @@ jobs:
             -H "Authorization:token ${TRAVIS_TOKEN}" \
             -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${RUSTC_STABLE}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
+          wait 10s
         fi
 
         if [ "${RUSTC_BETA}" != "${LATEST_BETA}" ]; then
@@ -128,6 +129,7 @@ jobs:
             -H "Authorization:token ${TRAVIS_TOKEN}" \
             -d "{\"request\":{\"branch\":\"master\",\"message\":\"Test ${RUSTC_BETA}\"}}" \
             https://api.travis-ci.org/repo/astral-engine%2Fastral/requests
+          wait 10s
         fi
 
         if [ "${RUSTC_NIGHTLY}" != "${LATEST_NIGHTLY}" ]; then
