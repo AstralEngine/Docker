@@ -22,12 +22,28 @@ env:
     TOOLCHAIN: nightly
   - TARGET: aarch64-linux-android
     TOOLCHAIN: stable
+  - TARGET: aarch64-linux-android
+    TOOLCHAIN: beta
+  - TARGET: aarch64-linux-android
+    TOOLCHAIN: nightly
   - TARGET: arm-linux-androideabi
     TOOLCHAIN: stable
+  - TARGET: arm-linux-androideabi
+    TOOLCHAIN: beta
+  - TARGET: arm-linux-androideabi
+    TOOLCHAIN: nightly
   - TARGET: x86_64-linux-android
     TOOLCHAIN: stable
+  - TARGET: x86_64-linux-android
+    TOOLCHAIN: beta
+  - TARGET: x86_64-linux-android
+    TOOLCHAIN: nightly
   # - TARGET: i686-linux-android
-    # TOOLCHAIN: stable
+  #   TOOLCHAIN: stable
+  # - TARGET: i686-linux-android
+  #   TOOLCHAIN: beta
+  # - TARGET: i686-linux-android
+  #   TOOLCHAIN: nightly
 
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
@@ -55,11 +71,11 @@ after_success: |
 before_deploy: |
   if [[ $TRAVIS_EVENT_TYPE == cron ]]; then
     if [[ $RUSTC_VERSION == $RUSTC_VERSION_NEW && $TRAVIS_EVENT_TYPE == cron ]]; then
-      echo "docker rmi -f astralengine/$TARGET:$TOOLCHAIN"
+      docker rmi -f astralengine/$TARGET:$TOOLCHAIN
     elif [[ $TOOLCHAIN == stable ]]; then
       VERSION=$(echo $RUSTC_VERSION_NEW | awk '{ print $2 }')
-      echo "docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:$VERSION"
-      echo "docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:latest"
+      docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:$VERSION
+      docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:latest
     fi
   fi
   echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin
