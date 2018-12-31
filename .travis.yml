@@ -91,7 +91,10 @@ jobs:
   include:
     - stage: trigger
       name: Astral Engine
+      before_script: false
       deploy: false
+      after_success: false
+      before_deploy: false
       script : |
         RUSTC_STABLE=$(docker run astralengine/$TARGET:stable rustc --version)
         RUSTC_BETA=$(docker run astralengine/$TARGET:beta rustc --version)
