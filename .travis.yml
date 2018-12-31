@@ -9,63 +9,58 @@ stages:
 
 env:
   - TARGET: x86_64-unknown-linux-gnu
+    TOOLCHAIN: stable
+  - TARGET: x86_64-unknown-linux-gnu
+    TOOLCHAIN: beta
+  - TARGET: x86_64-unknown-linux-gnu
+    TOOLCHAIN: nightly
   - TARGET: i686-unknown-linux-gnu
+    TOOLCHAIN: stable
+  - TARGET: i686-unknown-linux-gnu
+    TOOLCHAIN: beta
+  - TARGET: i686-unknown-linux-gnu
+    TOOLCHAIN: nightly
   - TARGET: aarch64-linux-android
+    TOOLCHAIN: stable
   - TARGET: arm-linux-androideabi
+    TOOLCHAIN: stable
   - TARGET: x86_64-linux-android
+    TOOLCHAIN: stable
   # - TARGET: i686-linux-android
+    # TOOLCHAIN: stable
 
 install: |
   git clone https://github.com/docker-library/official-images.git ~/official-images
-  TOOLCHAINS=( "stable" "beta" "nightly" )
 
 before_script: |
-  RUSTC_STABLE=$(docker run astralengine/$TARGET:stable rustc --version || true)
-  RUSTC_BETA=$(docker run astralengine/$TARGET:beta rustc --version || true)
-  RUSTC_NIGHTLY=$(docker run astralengine/$TARGET:nightly rustc --version || true)
-  echo $RUSTC_STABLE
-  echo $RUSTC_BETA
-  echo $RUSTC_NIGHTLY
+  RUSTC_VERSION=$(docker run astralengine/$TARGET:$TOOLCHAIN rustc --version || true)
+  echo $RUSTC_VERSION
 
 script: |
-  for TOOLCHAIN in "${TOOLCHAINS[@]}"; do
-    travis_fold start "$TOOLCHAIN"
-    travis_time_start
-    travis_retry docker build \
-      --rm \
-      --pull \
-      --cache-from astralengine/$TARGET:$TOOLCHAIN \
-      --file $TARGET/Dockerfile \
-      --tag astralengine/$TARGET:$TOOLCHAIN \
-      --build-arg TOOLCHAIN=$TOOLCHAIN \
-      --build-arg DATE="`date`" \
-      . || exit
-    ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
-    travis_time_finish
-    travis_fold end "$TOOLCHAIN"
-  done
+  travis_retry docker build \
+    --rm \
+    --pull \
+    --cache-from astralengine/$TARGET:$TOOLCHAIN \
+    --file $TARGET/Dockerfile \
+    --tag astralengine/$TARGET:$TOOLCHAIN \
+    --build-arg TOOLCHAIN=$TOOLCHAIN \
+    --build-arg DATE="`date`" \
+    .
+  ~/official-images/test/run.sh astralengine/$TARGET:$TOOLCHAIN
 
 after_success: |
-  RUSTC_STABLE_NEW=$(docker run astralengine/$TARGET:stable rustc --version || true)
-  RUSTC_BETA_NEW=$(docker run astralengine/$TARGET:beta rustc --version || true)
-  RUSTC_NIGHTLY_NEW=$(docker run astralengine/$TARGET:nightly rustc --version || true)
-  echo $RUSTC_STABLE_NEW
-  echo $RUSTC_BETA_NEW
-  echo $RUSTC_NIGHTLY_NEW
+  RUSTC_VERSION_NEW=$(docker run astralengine/$TARGET:$TOOLCHAIN rustc --version)
+  echo $RUSTC_VERSION_NEW
 
 before_deploy: |
-  VERSION=$(echo $RUSTC_STABLE_NEW | awk '{ print $2 }')
-  if [[ $RUSTC_STABLE_NEW == $RUSTC_STABLE && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f astralengine/$TARGET:stable
-  else
-    docker tag astralengine/$TARGET:stable astralengine/$TARGET:$VERSION
-    docker tag astralengine/$TARGET:stable astralengine/$TARGET:latest
-  fi
-  if [[ $RUSTC_BETA_NEW == $RUSTC_BETA && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f astralengine/$TARGET:beta
-  fi
-  if [[ $RUSTC_NIGHTLY_NEW == $RUSTC_NIGHTLY && $TRAVIS_EVENT_TYPE == cron ]]; then
-    docker rmi -f astralengine/$TARGET:nightly
+  if [[ $TRAVIS_EVENT_TYPE == cron ]]; then
+    if [[ $RUSTC_VERSION == $RUSTC_VERSION_NEW && $TRAVIS_EVENT_TYPE == cron ]]; then
+      echo "docker rmi -f astralengine/$TARGET:$TOOLCHAIN"
+    elif [[ $TOOLCHAIN == stable ]]; then
+      VERSION=$(echo $RUSTC_VERSION_NEW | awk '{ print $2 }')
+      echo "docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:$VERSION"
+      echo "docker tag astralengine/$TARGET:$TOOLCHAIN astralengine/$TARGET:latest"
+    fi
   fi
   echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin
 deploy:
